@@ -1,15 +1,16 @@
 window.onload = main;
 
 function main() {
-    var canvas = document.querySelector(".viewport");
-
-    var app = new Guitar(canvas);
+    var container = document.querySelector(".guitar-container");
+    var app = new Guitar(container);
     app.start();
 }
 
 class Guitar{
-    constructor(canvas) {
-        this.canvas = canvas;
+    constructor(container) {
+        this.container = container;
+
+        this.canvas = document.createElement("canvas");
         this.ctx = this.canvas.getContext("2d");
 
         this.audio_ctx = new AudioContext();
@@ -21,10 +22,11 @@ class Guitar{
 
     start() {
         this.sounds = this.loadSounds();
-        var stopper = 0;
-        //this.#loadSoundFiles(() => {
-        //    alert("All sounds loaded");
-        //})
+    }
+
+    drawBackground() {
+        var background_canvas = document.querySelector("#backgroundCanvas");
+        var ctx = background_canvas.getContext("2d");
     }
 
     loadSounds() {
@@ -33,7 +35,7 @@ class Guitar{
         .then(response => {
             return response.text();
         })
-        // Convert file names to urls and fetch each file
+        // Convert file names to urls and fetch each file as an arraybuffer
         .then(response_text => {
             var names = JSON.parse(response_text);
             var urls = names.map(sound => "sounds/" + sound);
@@ -54,7 +56,7 @@ class Guitar{
             return decoded_buffers
         })
         .catch(error => {
-            console.error("Error: ", error)
+            console.error("Error: ", error);
         });
     }
 }
