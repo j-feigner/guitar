@@ -25,7 +25,7 @@ class StringInstrument{
         this.frets = [];
 
         this.mouse_dragging = false;
-        this.drag_delay = 20;
+        this.drag_delay = 250;
 
         this.draw = this.draw.bind(this);
     }
@@ -120,7 +120,7 @@ class StringInstrument{
             if(this.mouse_dragging) {
                 this.strings.forEach(string => {
                     if(string.rect.isPointInBounds(e.offsetX, e.offsetY)) {
-                        string.pluck();
+                        string.pluck(this.audio_ctx, this.drag_delay);
                     }
                 })
             }
@@ -203,9 +203,20 @@ class InstrumentString{
         this.rect; // Rectangle object used for hit detection
         this.sounds;
         this.current_fret;
+        this.can_pluck = true;
     }
 
-    pluck() {
-        alert("Im hit!");
+    pluck(ctx, repeat_delay = 0) {
+        if(this.can_pluck) {
+            var source = new AudioBufferSourceNode(ctx);
+            source.buffer = this.sounds[0];
+            source.connect(ctx.destination);
+            source.start();
+
+            this.can_pluck = false;
+            setTimeout(() => {
+                this.can_pluck = true;
+            }, repeat_delay)
+        }
     }
 }
