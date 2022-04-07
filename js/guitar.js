@@ -28,15 +28,24 @@ class StringInstrument{
     }
 
     start() {
-        this.sounds = this.loadSounds(this.sound_source);
+        this.loadSounds(this.sound_source).then(decoded_buffers => {
+            // All sound resources have successfully loaded in here
+            this.sounds = decoded_buffers;
+            this.createStrings();
+        })
+        .catch(error => {
+            console.error("Guitar Error: ", error);
+        });
         this.initializeCanvases();
         this.drawBackground();
         window.requestAnimationFrame(this.draw);
     }
 
+    // Asynchronous method that returns an array of Promises that resolve
+    // to decoded Audio Buffers from mp3 files in ../sounds/directory
     loadSounds(directory) {
         // Load all files names from directory
-        fetch("php/load_sounds.php?instr=" + directory, {method: "GET"})
+        return fetch("php/load_sounds.php?instr=" + directory, {method: "GET"})
         .then(response => {
             return response.text();
         })
@@ -56,13 +65,6 @@ class StringInstrument{
             
             return Promise.all(sounds);
         })
-        // Return decoded sounds
-        .then(decoded_buffers => {
-            return decoded_buffers
-        })
-        .catch(error => {
-            console.error("Guitar.loadSounds() Error: ", error);
-        });
     }
 
     initializeCanvases() {
@@ -115,9 +117,10 @@ class StringInstrument{
         this.ctx.strokeStyle = "white";
 
         // Standing wave parameters
-        var amplitude = 2;
-        var frequency = 0.01;
-        var wavelength = 100;
+        var tau = Math.PI * 2;
+        var amplitude = 0.5;
+        var wavelength = w / 16;
+        var frequency = 1 / wavelength;
 
         // Draw each string to render canvas
         for(var i = 0; i < this.num_strings; i++) {
@@ -125,8 +128,8 @@ class StringInstrument{
             this.ctx.beginPath();
             this.ctx.moveTo(0, string_y);
             for(var x = 0; x < w; x++) {
-                var y = amplitude * Math.sin(x / wavelength) * Math.cos(frequency * timestamp);
-                this.ctx.lineTo(x, string_y + (y));
+                var y = 2 * amplitude * Math.sin(x * tau / wavelength) * Math.cos(frequency * tau * timestamp);
+                this.ctx.lineTo(x, string_y + (0));
             }
             this.ctx.stroke();
             this.ctx.closePath();
@@ -134,6 +137,10 @@ class StringInstrument{
 
         // Redraw
         window.requestAnimationFrame(this.draw);
+    }
+
+    createStrings() {
+
     }
 }
 
