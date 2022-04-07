@@ -31,6 +31,37 @@ class StringInstrument{
         this.drawBackground();
     }
 
+    loadSounds(directory) {
+        // Load all files names from directory
+        fetch("php/load_sounds.php?instr=" + directory, {method: "GET"})
+        .then(response => {
+            return response.text();
+        })
+        // Convert file names to urls and fetch each file as an arraybuffer
+        .then(response_text => {
+            var names = JSON.parse(response_text);
+            var urls = names.map(sound => "sounds/" + this.sound_source + "/" + sound);
+            var fetches = urls.map(url => fetch(url)
+                .then(response => response.arrayBuffer()));
+
+            return Promise.all(fetches);
+        })
+        // Decode each returned arraybuffer into useable sounds
+        .then(buffers => {
+            var sounds = buffers.map(buffer => this.audio_ctx.decodeAudioData(buffer)
+                .then(sound => sound));
+            
+            return Promise.all(sounds);
+        })
+        // Return decoded sounds
+        .then(decoded_buffers => {
+            return decoded_buffers
+        })
+        .catch(error => {
+            console.error("Guitar.loadSounds() Error: ", error);
+        });
+    }
+
     initializeCanvases() {
         this.background_canvas = document.createElement("canvas");
         this.render_canvas = document.createElement("canvas");
@@ -67,37 +98,6 @@ class StringInstrument{
     draw() {
         // Draw strings
         var width = this.canvas.width;
-    }
-
-    loadSounds(directory) {
-        // Load all files names from directory
-        fetch("php/load_sounds.php?instr=" + directory, {method: "GET"})
-        .then(response => {
-            return response.text();
-        })
-        // Convert file names to urls and fetch each file as an arraybuffer
-        .then(response_text => {
-            var names = JSON.parse(response_text);
-            var urls = names.map(sound => "sounds/" + this.sound_source + "/" + sound);
-            var fetches = urls.map(url => fetch(url)
-                .then(response => response.arrayBuffer()));
-
-            return Promise.all(fetches);
-        })
-        // Decode each returned arraybuffer into useable sounds
-        .then(buffers => {
-            var sounds = buffers.map(buffer => this.audio_ctx.decodeAudioData(buffer)
-                .then(sound => sound));
-            
-            return Promise.all(sounds);
-        })
-        // Return decoded sounds
-        .then(decoded_buffers => {
-            return decoded_buffers
-        })
-        .catch(error => {
-            console.error("Guitar.loadSounds() Error: ", error);
-        });
     }
 }
 
