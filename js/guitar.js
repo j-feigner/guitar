@@ -38,6 +38,8 @@ class StringInstrument {
             // All sound resources have successfully loaded in here
             this.sounds = decoded_buffers;
             this.createStrings();
+            this.createFingerboard();
+            this.drawBackground();
             window.requestAnimationFrame(this.draw);
         })
         .catch(error => {
@@ -46,8 +48,6 @@ class StringInstrument {
 
         this.initializeCanvases();
         this.initializeEvents();
-        this.createFingerboard();
-        this.drawBackground();
     }
 
     // Asynchronous method that returns an array of Promises that resolve
@@ -182,7 +182,7 @@ class StringInstrument {
         }
     }
 
-    // Called once during start() to draw and any imagery to the background canvas
+    // Called once during start() to draw static imagery to the background canvas
     drawBackground() {
         var ctx = this.background_canvas.getContext("2d");
 
@@ -212,16 +212,26 @@ class StringInstrument {
 
         // Standing wave parameters
         var tau = Math.PI * 2;
-        var amplitude = 1.5;
+        var amplitude = 1.4;
         var wavelength = this.width / 16;
         var frequency = 1 / wavelength;
 
         // Draw each string line to render_canvas with standing wave animation
         this.strings.forEach((string, index) => {
-            var amp_mod = amplitude * string.amplitude_modifier;
             this.ctx.beginPath();
+
+            // Draw horizontally to fret location
+            var fret_x = 0;
+            if(string.current_fret !== 0) {
+                var l = this.fingerboard.locations[index][string.current_fret - 1];
+                fret_x = l.x + (l.width / 2);
+            }
             this.ctx.moveTo(0, string.line);
-            for(var x = 0; x < this.width; x++) {
+            this.ctx.lineTo(fret_x, string.line);
+
+            // Draw standing sine wave from fret
+            var amp_mod = amplitude * string.amplitude_modifier;
+            for(var x = fret_x; x < this.width; x++) {
                 var y = 2 * amp_mod * Math.sin(x * tau / wavelength) * Math.cos(frequency * tau * timestamp);
                 this.ctx.lineTo(x, string.line + (y));
             }
@@ -281,6 +291,8 @@ class SIString {
         this.can_pluck = true;
     }
 
+    // Called on click & drag across a string's hitbox
+    // Plays sound accoording to currrent fret and animates corresponding string
     pluck(ctx, repeat_delay = 0) {
         if(this.can_pluck) {
             // Play audio byte
