@@ -127,6 +127,17 @@ class StringInstrument {
                         string.pluck(this.audio_ctx, this.drag_delay);
                     }
                 })
+            } 
+            else {
+                this.strings.forEach((string, string_index) => {
+                    if(string.rect.isPointInBounds(e.offsetX, e.offsetY)) {
+                        this.frets.forEach((fret, fret_index) => {
+                            if(fret.isPointInBounds(e.offsetX, e.offsetY)) {
+                                this.drawFretOverlay(fret_index, string_index);
+                            }
+                        })
+                    }
+                })
             }
         })
     }
@@ -154,6 +165,10 @@ class StringInstrument {
             ctx.stroke();
             ctx.closePath();
         }) 
+    }
+
+    drawFretOverlay(fret, string) {
+        alert("Fret: " + String(fret) + " String: " + String(string));
     }
 
     draw(timestamp) {
