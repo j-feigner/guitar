@@ -23,13 +23,15 @@ class StringInstrument{
 
         this.num_frets = frets;
         this.frets = [];
+
+        this.draw = this.draw.bind(this);
     }
 
     start() {
         this.sounds = this.loadSounds(this.sound_source);
         this.initializeCanvases();
         this.drawBackground();
-        this.draw();
+        window.requestAnimationFrame(this.draw);
     }
 
     loadSounds(directory) {
@@ -83,10 +85,12 @@ class StringInstrument{
         var w = this.background_canvas.width;
         var h = this.background_canvas.height;
 
+        var fretboard_width = w - (w / 5);
+
         // Draw fret demarcations to background
         ctx.strokeStyle = "black";
         ctx.lineWidth = 2;
-        var fret_width = w / this.num_frets;
+        var fret_width = fretboard_width / this.num_frets;
         var fret_height = h;
         var fretboard_y = (h / 2) - (fret_height / 2);
         for(var i = 0; i < 19; i++) {
@@ -98,22 +102,38 @@ class StringInstrument{
         }
     }
 
-    draw() {
+    draw(timestamp) {
         var w = this.render_canvas.width;
         var h = this.render_canvas.height;
 
-        // Draw strings to render canvas
-        var string_height = h / this.num_strings;
+        // Clear rendering canvas
+        this.ctx.clearRect(0, 0, w, h);
 
-        this.ctx.lineWidth = 10;
+        // String display properties
+        var string_height = h / this.num_strings;
+        this.ctx.lineWidth = 6;
         this.ctx.strokeStyle = "white";
+
+        // Standing wave parameters
+        var amplitude = 2;
+        var frequency = 0.01;
+        var wavelength = 100;
+
+        // Draw each string to render canvas
         for(var i = 0; i < this.num_strings; i++) {
+            var string_y = (i * string_height) + (string_height / 2);
             this.ctx.beginPath();
-            this.ctx.moveTo(0, (i * string_height) + (string_height / 2));
-            this.ctx.lineTo(w, (i * string_height) + (string_height / 2));
+            this.ctx.moveTo(0, string_y);
+            for(var x = 0; x < w; x++) {
+                var y = amplitude * Math.sin(x / wavelength) * Math.cos(frequency * timestamp);
+                this.ctx.lineTo(x, string_y + (y));
+            }
             this.ctx.stroke();
             this.ctx.closePath();
         }
+
+        // Redraw
+        window.requestAnimationFrame(this.draw);
     }
 }
 
