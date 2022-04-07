@@ -6,9 +6,12 @@ function main() {
     app.start();
 }
 
-class StringInstrument{
+class StringInstrument {
     constructor(strings, frets, sounds, container) {
         this.container = container;
+
+        this.width;
+        this.height;
 
         this.background_canvas;
         this.render_canvas;
@@ -40,7 +43,7 @@ class StringInstrument{
         .catch(error => {
             console.error("Guitar Error: ", error);
         });
-        
+
         this.initializeCanvases();
         this.initializeEvents();
         this.drawBackground();
@@ -94,7 +97,13 @@ class StringInstrument{
     }
 
     createFrets() {
+        var fretboard_width = this.width - (this.width / 5);
+        var fret_width = fretboard_width / this.num_frets;
+        var fret_height = this.height;
 
+        for(var i = 0; i < this.num_frets; i++) {
+            this.frets[i] = new Rectangle(i * fret_width, 0, fret_width, fret_height);
+        }
     }
 
     initializeCanvases() {
@@ -106,25 +115,23 @@ class StringInstrument{
         this.container.appendChild(this.background_canvas);
         this.container.appendChild(this.render_canvas);
 
-        this.background_canvas.width = this.render_canvas.width = this.container.offsetWidth;
-        this.background_canvas.height = this.render_canvas.height = this.container.offsetHeight;
+        this.background_canvas.width = this.render_canvas.width = this.width = this.container.offsetWidth;
+        this.background_canvas.height = this.render_canvas.height = this.height = this.container.offsetHeight;
 
         this.ctx = this.render_canvas.getContext("2d");
     }
 
     drawBackground() {
         var ctx = this.background_canvas.getContext("2d");
-        var w = this.background_canvas.width;
-        var h = this.background_canvas.height;
 
-        var fretboard_width = w - (w / 5);
+        var fretboard_width = this.width - (this.width / 5);
 
         // Draw fret demarcations to background
         ctx.strokeStyle = "black";
         ctx.lineWidth = 2;
         var fret_width = fretboard_width / this.num_frets;
-        var fret_height = h;
-        var fretboard_y = (h / 2) - (fret_height / 2);
+        var fret_height = this.height;
+        var fretboard_y = (this.height / 2) - (fret_height / 2);
         for(var i = 0; i < 19; i++) {
             ctx.beginPath();
             ctx.moveTo(i * fret_width, fretboard_y);
@@ -154,11 +161,8 @@ class StringInstrument{
     }
 
     draw(timestamp) {
-        var w = this.render_canvas.width;
-        var h = this.render_canvas.height;
-
         // Clear rendering canvas
-        this.ctx.clearRect(0, 0, w, h);
+        this.ctx.clearRect(0, 0, this.width, this.height);
 
         // String display properties
         this.ctx.lineWidth = 6;
@@ -167,7 +171,7 @@ class StringInstrument{
         // Standing wave parameters
         var tau = Math.PI * 2;
         var amplitude = 2;
-        var wavelength = w / 16;
+        var wavelength = this.width / 16;
         var frequency = 1 / wavelength;
 
         // Draw each string line to render_canvas with standing wave animation
@@ -175,7 +179,7 @@ class StringInstrument{
             var amp_mod = amplitude * string.amplitude_modifier;
             this.ctx.beginPath();
             this.ctx.moveTo(0, string.line);
-            for(var x = 0; x < w; x++) {
+            for(var x = 0; x < this.width; x++) {
                 var y = 2 * amp_mod * Math.sin(x * tau / wavelength) * Math.cos(frequency * tau * timestamp);
                 this.ctx.lineTo(x, string.line + (y));
             }
@@ -188,19 +192,16 @@ class StringInstrument{
     }
 }
 
-class Fret{
-    constructor() {
-        this.rect;
-        this.fret_num;
-    }
-}
-
-class InstrumentString{
+class InstrumentString {
     constructor() {
         this.line; // y-value used for rendering with ctx.stroke()
         this.rect; // Rectangle object used for hit detection
+
         this.sounds;
-        this.current_fret;
+
+        this.current_fret = 0;
+        this.is_fretted = false;
+
         this.is_playing = false;
         this.amplitude_modifier = 0;
         this.can_pluck = true;
