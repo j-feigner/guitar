@@ -2,7 +2,7 @@ window.onload = main;
 
 function main() {
     var container = document.querySelector(".guitar-container");
-    var app = new StringInstrument(6, 19, "/sounds", container);
+    var app = new StringInstrument(6, 19, "guitar_6_acoustic", container);
     app.start();
 }
 
@@ -14,17 +14,18 @@ class StringInstrument{
         this.ctx = this.canvas.getContext("2d");
 
         this.audio_ctx = new AudioContext();
+        this.sound_source = sounds;
         this.sounds = [];
 
-        this.num_strings = 6;
+        this.num_strings = strings;
         this.strings = [];
 
-        this.num_frets = 19;
+        this.num_frets = frets;
         this.frets = [];
     }
 
     start() {
-        this.sounds = this.loadSounds();
+        this.sounds = this.loadSounds(this.sound_source);
         this.drawBackground();
     }
 
@@ -52,16 +53,16 @@ class StringInstrument{
         }
     }
 
-    loadSounds() {
+    loadSounds(directory) {
         // Load all files names from directory
-        fetch("php/load_sounds.php")
+        fetch("php/load_sounds.php?instr=" + directory, {method: "GET"})
         .then(response => {
             return response.text();
         })
         // Convert file names to urls and fetch each file as an arraybuffer
         .then(response_text => {
             var names = JSON.parse(response_text);
-            var urls = names.map(sound => "sounds/" + sound);
+            var urls = names.map(sound => "sounds/" + this.sound_source + "/" + sound);
             var fetches = urls.map(url => fetch(url)
                 .then(response => response.arrayBuffer()));
 
