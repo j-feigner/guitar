@@ -15,8 +15,8 @@ html, body {
 }
 
 .guitar-container {
-    width: 600px;
-    height: 250px;
+    width: 800px;
+    height: 300px;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -24,8 +24,8 @@ html, body {
 }
 
 .render-canvas {
-    width: 600px;
-    height: 250px;
+    width: 800px;
+    height: 300px;
     position: absolute;
     top: 0px;
     left: 0px;
