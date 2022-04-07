@@ -76,6 +76,8 @@ class StringInstrument {
         })
     }
 
+    // Populates strings array with SIString objects
+    // Strings contain a hitbox for event detection, sounds array, and animation flags
     createStrings() {
         var width =  this.render_canvas.width;
         var height = this.render_canvas.height;
@@ -97,6 +99,8 @@ class StringInstrument {
         }
     }
 
+    // Populates container element with two HTML Canvas elements, one
+    // for background imagery (fingerboard) and one for animated imagery (strings, frets)
     initializeCanvases() {
         this.background_canvas = document.createElement("canvas");
         this.render_canvas = document.createElement("canvas");
@@ -162,6 +166,8 @@ class StringInstrument {
         })
     }
 
+    // Creates SIFingerboard object, mainly used for determining fret selection
+    // during mouse events
     createFingerboard() {
         var fingerboard_width = this.width - (this.width / 5);
         var fret_width = fingerboard_width / this.num_frets;
@@ -176,6 +182,7 @@ class StringInstrument {
         }
     }
 
+    // Called once during start() to draw and any imagery to the background canvas
     drawBackground() {
         var ctx = this.background_canvas.getContext("2d");
 
@@ -193,6 +200,8 @@ class StringInstrument {
         }
     }
 
+    // Called recursively once per frame with requestAnimationFrame()
+    // All drawing done to the foreground rendering canvas
     draw(timestamp) {
         // Clear rendering canvas
         this.ctx.clearRect(0, 0, this.width, this.height);
