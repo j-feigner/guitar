@@ -50,6 +50,7 @@ class StringInstrument {
         this.initializeCanvases();
         this.initializeEvents();
         this.createFingerboard();
+        this.createFrets();
         this.drawBackground();
     }
 
@@ -116,6 +117,7 @@ class StringInstrument {
     }
 
     initializeEvents() {
+        // Click and drag toggles
         window.addEventListener("mousedown", () => {
             this.mouse_dragging = true;
         })
@@ -124,6 +126,7 @@ class StringInstrument {
         })
 
         this.render_canvas.addEventListener("mousemove", e => {
+            // On click and drag, pluck strings
             if(this.mouse_dragging) {
                 this.strings.forEach(string => {
                     if(string.rect.isPointInBounds(e.offsetX, e.offsetY)) {
@@ -131,6 +134,21 @@ class StringInstrument {
                     }
                 })
             } 
+            // If mouse is not dragging, highlight fret location underr cursor
+            else {
+                this.fingerboard.hover_location = null;
+                this.fingerboard.locations.forEach(row => {
+                    row.forEach(location => {
+                        if(location.isPointInBounds(e.offsetX, e.offsetY)) {
+                            this.fingerboard.hover_location = location;
+                        }
+                    })
+                })
+            }
+        })
+
+        this.render_canvas.addEventListener("mouseout", () => {
+            this.fingerboard.hover_location = null;
         })
     }
 
@@ -139,7 +157,7 @@ class StringInstrument {
         var fret_width = fretboard_width / this.num_frets;
         var fret_height = this.height;
 
-        for(var i = 0; i < this.num_frets; i++) {
+        for(var i = 0; i <= this.num_frets; i++) {
             this.frets[i] = new Rectangle(i * fret_width, 0, fret_width, fret_height);
         }
     }
@@ -171,21 +189,6 @@ class StringInstrument {
             ctx.stroke();
             ctx.closePath();
         }) 
-
-        //  Draw fingerboard hitboxes for testing
-        ctx.strokeStyle = "yellow";
-        ctx.beginPath();
-        this.fingerboard.locations.forEach(row => {
-            row.forEach(location => {
-                ctx.rect(location.x, location.y, location.width, location.height);
-            })
-        })
-        ctx.stroke();
-        ctx.closePath();
-    }
-
-    drawFretOverlay(fret_index, string_index) {
-        
     }
 
     draw(timestamp) {
@@ -214,6 +217,21 @@ class StringInstrument {
             this.ctx.stroke();
             this.ctx.closePath();
         })
+
+        // Draw hovered fingerboard location
+        if(this.fingerboard.hover_location !== null) {
+            var l = this.fingerboard.hover_location;
+            var x = l.x + (l.width / 2);
+            var y = l.y + (l.height / 2);
+            var radius = 10;
+            var tau = Math.PI * 2;
+
+            this.ctx.fillStyle = "lightsalmon";
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, radius, 0, tau);
+            this.ctx.fill();
+            this.ctx.closePath();
+        }
 
         // Redraw
         window.requestAnimationFrame(this.draw);
@@ -281,5 +299,8 @@ class SIFingerboard {
         this.columns = frets;
 
         this.locations = [];
+
+        this.hover_location = null;
+        this.selected_locations = [];
     }
 }
