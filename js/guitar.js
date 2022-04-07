@@ -167,8 +167,8 @@ class StringInstrument {
         }) 
     }
 
-    drawFretOverlay(fret, string) {
-        alert("Fret: " + String(fret) + " String: " + String(string));
+    drawFretOverlay(fret_index, string_index) {
+        
     }
 
     draw(timestamp) {
@@ -181,7 +181,7 @@ class StringInstrument {
 
         // Standing wave parameters
         var tau = Math.PI * 2;
-        var amplitude = 2;
+        var amplitude = 1.5;
         var wavelength = this.width / 16;
         var frequency = 1 / wavelength;
 
@@ -214,7 +214,11 @@ class InstrumentString {
         this.is_fretted = false;
 
         this.is_playing = false;
+        this.play_timeout;
+
         this.amplitude_modifier = 0;
+        this.vibrate_interval;
+
         this.can_pluck = true;
     }
 
@@ -228,19 +232,20 @@ class InstrumentString {
 
             // Set decreasing vibration amplitude
             this.amplitude_modifier = 1;
-            var vibrate = setInterval(() => {
-                this.amplitude_modifier -= 0.05;
-                if(this.amplitude_modifier <= 0) {
+            clearInterval(this.vibrate_interval);
+            this.vibrate_interval = setInterval(() => {
+                this.amplitude_modifier -= 0.1;
+                if(this.amplitude_modifier <= 0.1) {
                     this.amplitude_modifier = 0;
+                    clearInterval(this.vibrate_interval);
                 }
             }, 150)
 
             // Set animation flag for sound duration
             this.is_playing = true;
-            setTimeout(() => {
+            clearTimeout(this.play_timeout);
+            this.play_timeout = setTimeout(() => {
                 this.is_playing = false;
-                this.amplitude_modifier = 0;
-                clearInterval(vibrate);
             }, this.sounds[0].duration * 1000 * 0.9)
 
             // Flag to prevent repeat plays on mousedrag
