@@ -140,17 +140,17 @@ class StringInstrument{
 
         // Standing wave parameters
         var tau = Math.PI * 2;
-        var amplitude = 0;
+        var amplitude = 2;
         var wavelength = w / 16;
         var frequency = 1 / wavelength;
 
         // Draw each string line to render canvas with standing wave
         this.strings.forEach(string => {
-            string.is_playing ? amplitude = 1 : amplitude = 0;
+            var amp_mod = amplitude * string.amplitude_modifier;
             this.ctx.beginPath();
             this.ctx.moveTo(0, string.line);
             for(var x = 0; x < w; x++) {
-                var y = 2 * amplitude * Math.sin(x * tau / wavelength) * Math.cos(frequency * tau * timestamp);
+                var y = 2 * amp_mod * Math.sin(x * tau / wavelength) * Math.cos(frequency * tau * timestamp);
                 this.ctx.lineTo(x, string.line + (y));
             }
             this.ctx.stroke();
@@ -197,21 +197,37 @@ class InstrumentString{
         this.sounds;
         this.current_fret;
         this.is_playing = false;
+        this.amplitude_modifier = 0;
         this.can_pluck = true;
     }
 
     pluck(ctx, repeat_delay = 0) {
         if(this.can_pluck) {
+            // Play audio byte
             var source = new AudioBufferSourceNode(ctx);
             source.buffer = this.sounds[0];
             source.connect(ctx.destination);
             source.start();
 
+ 
+            // Set decreasing vibration amplitude
+            this.amplitude_modifier = 1;
+            var vibrate = setInterval(() => {
+                this.amplitude_modifier -= 0.05;
+                if(this.amplitude_modifier <= 0) {
+                    this.amplitude_modifier = 0;
+                }
+            }, 150)
+
+            // Set animation flag for sound duration
             this.is_playing = true;
             setTimeout(() => {
                 this.is_playing = false;
-            }, 500)
+                this.amplitude_modifier = 0;
+                clearInterval(vibrate);
+            }, this.sounds[0].duration * 1000 * 0.9)
 
+            // Flag to prevent repeat plays on mousedrag
             this.can_pluck = false;
             setTimeout(() => {
                 this.can_pluck = true;
