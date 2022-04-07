@@ -21,11 +21,14 @@ class StringInstrument {
         this.sound_source = sounds;
         this.sounds = [];
 
+
+        this.fingerboard = new SIFingerboard(strings, frets);
         this.num_strings = strings;
         this.strings = [];
 
         this.num_frets = frets;
         this.frets = [];
+        this.fret_selection_overlay;
 
         this.mouse_dragging = false;
         this.drag_delay = 250;
@@ -46,7 +49,7 @@ class StringInstrument {
 
         this.initializeCanvases();
         this.initializeEvents();
-        this.createFrets();
+        this.createFingerboard();
         this.drawBackground();
     }
 
@@ -90,7 +93,7 @@ class StringInstrument {
             var midline_y = (i * fretboard_division) + (half_division);
             var hitbox_y = midline_y - (string_hitbox_height / 2);
 
-            this.strings[i] = new InstrumentString();
+            this.strings[i] = new SIString();
             this.strings[i].line = midline_y;
             this.strings[i].rect = new Rectangle(0, hitbox_y, width, string_hitbox_height);
             this.strings[i].sounds = this.sounds.slice(sounds_start, sounds_start + 4);
@@ -128,17 +131,6 @@ class StringInstrument {
                     }
                 })
             } 
-            else {
-                this.strings.forEach((string, string_index) => {
-                    if(string.rect.isPointInBounds(e.offsetX, e.offsetY)) {
-                        this.frets.forEach((fret, fret_index) => {
-                            if(fret.isPointInBounds(e.offsetX, e.offsetY)) {
-                                this.drawFretOverlay(fret_index, string_index);
-                            }
-                        })
-                    }
-                })
-            }
         })
     }
 
@@ -149,6 +141,20 @@ class StringInstrument {
 
         for(var i = 0; i < this.num_frets; i++) {
             this.frets[i] = new Rectangle(i * fret_width, 0, fret_width, fret_height);
+        }
+    }
+
+    createFingerboard() {
+        var fingerboard_width = this.width - (this.width / 5);
+        var fret_width = fingerboard_width / this.num_frets;
+        var fret_height = this.height / this.num_strings;
+
+        for(var i = 0; i < this.num_strings; i++) {
+            var row = [];
+            for(var j = 0; j < this.num_frets; j++) {
+                row[j] = new Rectangle(fret_width * j, fret_height * i, fret_width, fret_height);
+            }
+            this.fingerboard.locations.push(row);
         }
     }
 
@@ -165,6 +171,17 @@ class StringInstrument {
             ctx.stroke();
             ctx.closePath();
         }) 
+
+        //  Draw fingerboard hitboxes for testing
+        ctx.strokeStyle = "yellow";
+        ctx.beginPath();
+        this.fingerboard.locations.forEach(row => {
+            row.forEach(location => {
+                ctx.rect(location.x, location.y, location.width, location.height);
+            })
+        })
+        ctx.stroke();
+        ctx.closePath();
     }
 
     drawFretOverlay(fret_index, string_index) {
@@ -203,7 +220,7 @@ class StringInstrument {
     }
 }
 
-class InstrumentString {
+class SIString {
     constructor() {
         this.line; // y-value used for rendering with ctx.stroke()
         this.rect; // Rectangle object used for hit detection
@@ -211,6 +228,7 @@ class InstrumentString {
         this.sounds;
 
         this.current_fret = 0;
+        this.overlay_fret;
         this.is_fretted = false;
 
         this.is_playing = false;
@@ -254,5 +272,14 @@ class InstrumentString {
                 this.can_pluck = true;
             }, repeat_delay)
         }
+    }
+}
+
+class SIFingerboard {
+    constructor(strings, frets) {
+        this.rows = strings;
+        this.columns = frets;
+
+        this.locations = [];
     }
 }
