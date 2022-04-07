@@ -29,6 +29,7 @@ class StringInstrument{
         this.sounds = this.loadSounds(this.sound_source);
         this.initializeCanvases();
         this.drawBackground();
+        this.draw();
     }
 
     loadSounds(directory) {
@@ -73,19 +74,21 @@ class StringInstrument{
 
         this.background_canvas.width = this.render_canvas.width = this.container.offsetWidth;
         this.background_canvas.height = this.render_canvas.height = this.container.offsetHeight;
+
+        this.ctx = this.render_canvas.getContext("2d");
     }
 
     drawBackground() {
         var ctx = this.background_canvas.getContext("2d");
-        var width = this.background_canvas.width;
-        var height = this.background_canvas.height;
+        var w = this.background_canvas.width;
+        var h = this.background_canvas.height;
 
-        // Draw frets
+        // Draw fret demarcations to background
         ctx.strokeStyle = "black";
         ctx.lineWidth = 2;
-        var fret_width = width / this.num_frets;
-        var fret_height = height / 2;
-        var fretboard_y = (height / 2) - (fret_height / 2);
+        var fret_width = w / this.num_frets;
+        var fret_height = h;
+        var fretboard_y = (h / 2) - (fret_height / 2);
         for(var i = 0; i < 19; i++) {
             ctx.beginPath();
             ctx.moveTo(i * fret_width, fretboard_y);
@@ -96,8 +99,21 @@ class StringInstrument{
     }
 
     draw() {
-        // Draw strings
-        var width = this.canvas.width;
+        var w = this.render_canvas.width;
+        var h = this.render_canvas.height;
+
+        // Draw strings to render canvas
+        var string_height = h / this.num_strings;
+
+        this.ctx.lineWidth = 10;
+        this.ctx.strokeStyle = "white";
+        for(var i = 0; i < this.num_strings; i++) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, (i * string_height) + (string_height / 2));
+            this.ctx.lineTo(w, (i * string_height) + (string_height / 2));
+            this.ctx.stroke();
+            this.ctx.closePath();
+        }
     }
 }
 
