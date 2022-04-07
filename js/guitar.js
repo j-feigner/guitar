@@ -24,6 +24,9 @@ class StringInstrument{
         this.num_frets = frets;
         this.frets = [];
 
+        this.mouse_dragging = false;
+        this.drag_delay = 20;
+
         this.draw = this.draw.bind(this);
     }
 
@@ -38,6 +41,7 @@ class StringInstrument{
             console.error("Guitar Error: ", error);
         });
         this.initializeCanvases();
+        this.initializeEvents();
         this.drawBackground();
     }
 
@@ -104,6 +108,25 @@ class StringInstrument{
         }
     }
 
+    initializeEvents() {
+        window.addEventListener("mousedown", () => {
+            this.mouse_dragging = true;
+        })
+        window.addEventListener("mouseup", () => {
+            this.mouse_dragging = false;
+        })
+
+        this.render_canvas.addEventListener("mousemove", e => {
+            if(this.mouse_dragging) {
+                this.strings.forEach(string => {
+                    if(string.rect.isPointInBounds(e.offsetX, e.offsetY)) {
+                        string.pluck();
+                    }
+                })
+            }
+        })
+    }
+
     draw(timestamp) {
         var w = this.render_canvas.width;
         var h = this.render_canvas.height;
@@ -121,7 +144,7 @@ class StringInstrument{
         var wavelength = w / 8;
         var frequency = 1 / wavelength;
 
-        // Draw each string line to render canvas
+        // Draw each string line to render canvas with standing wave
         this.strings.forEach(string => {
             this.ctx.beginPath();
             this.ctx.moveTo(0, string.line);
@@ -183,6 +206,6 @@ class InstrumentString{
     }
 
     pluck() {
-
+        alert("Im hit!");
     }
 }
