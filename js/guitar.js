@@ -21,7 +21,6 @@ class StringInstrument {
         this.sound_source = sounds;
         this.sounds = [];
 
-
         this.fingerboard = new SIFingerboard(strings, frets);
         this.num_strings = strings;
         this.strings = [];
@@ -237,7 +236,7 @@ class StringInstrument {
                 var x = l.x + (l.width / 2);
                 var y = l.y + (l.height / 2);
 
-                this.ctx.fillStyle = "rgb(255,140,100)";
+                this.ctx.fillStyle = "rgb(255,100,100)";
                 this.ctx.beginPath();
                 this.ctx.arc(x, y, 10, 0, tau);
                 this.ctx.fill();
