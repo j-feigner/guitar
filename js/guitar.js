@@ -124,7 +124,6 @@ class StringInstrument {
         window.addEventListener("mouseup", () => {
             this.mouse_dragging = false;
         })
-
         this.render_canvas.addEventListener("mousemove", e => {
             // On click and drag, pluck strings
             if(this.mouse_dragging) {
@@ -146,9 +145,24 @@ class StringInstrument {
                 })
             }
         })
-
         this.render_canvas.addEventListener("mouseout", () => {
             this.fingerboard.hover_location = null;
+        })
+
+        // Change string's respective fret on mouse click
+        // Clicking on current fret will unfret string (set string.current_fret to 0)
+        this.render_canvas.addEventListener("click", e => {
+            this.fingerboard.locations.forEach((row, string_index) => {
+                row.forEach((location, fret_index) => {
+                    if(location.isPointInBounds(e.offsetX, e.offsetY)) {
+                        if(this.strings[string_index].current_fret === fret_index + 1) {
+                            this.strings[string_index].current_fret = 0;
+                        } else {
+                            this.strings[string_index].current_fret = fret_index + 1;
+                        }
+                    }
+                })
+            })
         })
     }
 
@@ -206,7 +220,7 @@ class StringInstrument {
         var frequency = 1 / wavelength;
 
         // Draw each string line to render_canvas with standing wave animation
-        this.strings.forEach(string => {
+        this.strings.forEach((string, index) => {
             var amp_mod = amplitude * string.amplitude_modifier;
             this.ctx.beginPath();
             this.ctx.moveTo(0, string.line);
@@ -216,6 +230,19 @@ class StringInstrument {
             }
             this.ctx.stroke();
             this.ctx.closePath();
+
+            // Draw current fret selection if set for string
+            if(string.current_fret !== 0) {
+                var l = this.fingerboard.locations[index][string.current_fret - 1];
+                var x = l.x + (l.width / 2);
+                var y = l.y + (l.height / 2);
+
+                this.ctx.fillStyle = "rgb(255,140,100)";
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, 10, 0, tau);
+                this.ctx.fill();
+                this.ctx.closePath();
+            }
         })
 
         // Draw hovered fingerboard location
@@ -224,9 +251,8 @@ class StringInstrument {
             var x = l.x + (l.width / 2);
             var y = l.y + (l.height / 2);
             var radius = 10;
-            var tau = Math.PI * 2;
 
-            this.ctx.fillStyle = "lightsalmon";
+            this.ctx.fillStyle = "rgba(255,160,122,0.6)";
             this.ctx.beginPath();
             this.ctx.arc(x, y, radius, 0, tau);
             this.ctx.fill();
@@ -262,7 +288,7 @@ class SIString {
         if(this.can_pluck) {
             // Play audio byte
             var source = new AudioBufferSourceNode(ctx);
-            source.buffer = this.sounds[0];
+            source.buffer = this.sounds[this.current_fret];
             source.connect(ctx.destination);
             source.start();
 
@@ -282,7 +308,7 @@ class SIString {
             clearTimeout(this.play_timeout);
             this.play_timeout = setTimeout(() => {
                 this.is_playing = false;
-            }, this.sounds[0].duration * 1000 * 0.9)
+            }, source.buffer.duration * 1000 * 0.9)
 
             // Flag to prevent repeat plays on mousedrag
             this.can_pluck = false;
@@ -301,6 +327,5 @@ class SIFingerboard {
         this.locations = [];
 
         this.hover_location = null;
-        this.selected_locations = [];
     }
 }
