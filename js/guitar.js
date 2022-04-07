@@ -26,8 +26,6 @@ class StringInstrument {
         this.strings = [];
 
         this.num_frets = frets;
-        this.frets = [];
-        this.fret_selection_overlay;
 
         this.mouse_dragging = false;
         this.drag_delay = 250;
@@ -49,7 +47,6 @@ class StringInstrument {
         this.initializeCanvases();
         this.initializeEvents();
         this.createFingerboard();
-        this.createFrets();
         this.drawBackground();
     }
 
@@ -165,16 +162,6 @@ class StringInstrument {
         })
     }
 
-    createFrets() {
-        var fretboard_width = this.width - (this.width / 5);
-        var fret_width = fretboard_width / this.num_frets;
-        var fret_height = this.height;
-
-        for(var i = 0; i <= this.num_frets; i++) {
-            this.frets[i] = new Rectangle(i * fret_width, 0, fret_width, fret_height);
-        }
-    }
-
     createFingerboard() {
         var fingerboard_width = this.width - (this.width / 5);
         var fret_width = fingerboard_width / this.num_frets;
@@ -195,13 +182,15 @@ class StringInstrument {
         // Draw fret demarcations to background
         ctx.strokeStyle = "black";
         ctx.lineWidth = 2;
-        this.frets.forEach(fret => {
+        for(var i = 0; i < this.fingerboard.rows; i++) {
             ctx.beginPath();
-            ctx.moveTo(fret.x, fret.y);
-            ctx.lineTo(fret.x, fret.y + fret.height);
+            this.fingerboard.locations[i].forEach(location => {
+                ctx.moveTo(location.x, location.y);
+                ctx.lineTo(location.x, location.y + location.height);
+            })
             ctx.stroke();
             ctx.closePath();
-        }) 
+        }
     }
 
     draw(timestamp) {
@@ -322,9 +311,7 @@ class SIFingerboard {
     constructor(strings, frets) {
         this.rows = strings;
         this.columns = frets;
-
         this.locations = [];
-
         this.hover_location = null;
     }
 }
