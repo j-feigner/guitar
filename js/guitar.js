@@ -32,13 +32,13 @@ class StringInstrument{
             // All sound resources have successfully loaded in here
             this.sounds = decoded_buffers;
             this.createStrings();
+            window.requestAnimationFrame(this.draw);
         })
         .catch(error => {
             console.error("Guitar Error: ", error);
         });
         this.initializeCanvases();
         this.drawBackground();
-        window.requestAnimationFrame(this.draw);
     }
 
     // Asynchronous method that returns an array of Promises that resolve
@@ -112,35 +112,58 @@ class StringInstrument{
         this.ctx.clearRect(0, 0, w, h);
 
         // String display properties
-        var string_height = h / this.num_strings;
         this.ctx.lineWidth = 6;
         this.ctx.strokeStyle = "white";
 
         // Standing wave parameters
         var tau = Math.PI * 2;
-        var amplitude = 0.5;
-        var wavelength = w / 16;
+        var amplitude = 0;
+        var wavelength = w / 8;
         var frequency = 1 / wavelength;
 
-        // Draw each string to render canvas
-        for(var i = 0; i < this.num_strings; i++) {
-            var string_y = (i * string_height) + (string_height / 2);
+        // Draw each string line to render canvas
+        this.strings.forEach(string => {
             this.ctx.beginPath();
-            this.ctx.moveTo(0, string_y);
+            this.ctx.moveTo(0, string.line);
             for(var x = 0; x < w; x++) {
                 var y = 2 * amplitude * Math.sin(x * tau / wavelength) * Math.cos(frequency * tau * timestamp);
-                this.ctx.lineTo(x, string_y + (0));
+                this.ctx.lineTo(x, string.line + (y));
             }
             this.ctx.stroke();
             this.ctx.closePath();
-        }
+        })
+
+        // Draw each string hitbox to render canvas
+        this.strings.forEach(string => {
+            this.ctx.strokeStyle = "red";
+            this.ctx.lineWidth = 2;
+            var r = string.rect;
+            this.ctx.strokeRect(r.x, r.y, r.width, r.height);
+        })
 
         // Redraw
         window.requestAnimationFrame(this.draw);
     }
 
     createStrings() {
+        var width =  this.render_canvas.width;
+        var height = this.render_canvas.height;
 
+        var fretboard_division = height / this.num_strings; // Divides fretboard into equal parts for each string
+        var half_division = fretboard_division / 2;
+
+        var string_hitbox_height = 10;
+
+        for(var i = 0; i < this.num_strings; i++) {
+            var sounds_start = i * 5;
+            var midline_y = (i * fretboard_division) + (half_division);
+            var hitbox_y = midline_y - (string_hitbox_height / 2);
+
+            this.strings[i] = new InstrumentString();
+            this.strings[i].line = midline_y;
+            this.strings[i].rect = new Rectangle(0, hitbox_y, width, string_hitbox_height);
+            this.strings[i].sounds = this.sounds.slice(sounds_start, sounds_start + 4);
+        }
     }
 }
 
@@ -151,10 +174,12 @@ class Fret{
     }
 }
 
-class String{
+class InstrumentString{
     constructor() {
-        this.rect;
+        this.line; // y-value used for rendering with ctx.stroke()
+        this.rect; // Rectangle object used for hit detection
         this.sounds;
+        this.current_fret;
     }
 
     pluck() {
