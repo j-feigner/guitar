@@ -40,6 +40,7 @@ class StringInstrument{
         .catch(error => {
             console.error("Guitar Error: ", error);
         });
+        
         this.initializeCanvases();
         this.initializeEvents();
         this.drawBackground();
@@ -69,6 +70,31 @@ class StringInstrument{
             
             return Promise.all(sounds);
         })
+    }
+
+    createStrings() {
+        var width =  this.render_canvas.width;
+        var height = this.render_canvas.height;
+
+        var fretboard_division = height / this.num_strings; // Divides fretboard into equal parts for each string
+        var half_division = fretboard_division / 2;
+
+        var string_hitbox_height = 14;
+
+        for(var i = 0; i < this.num_strings; i++) {
+            var sounds_start = i * 5;
+            var midline_y = (i * fretboard_division) + (half_division);
+            var hitbox_y = midline_y - (string_hitbox_height / 2);
+
+            this.strings[i] = new InstrumentString();
+            this.strings[i].line = midline_y;
+            this.strings[i].rect = new Rectangle(0, hitbox_y, width, string_hitbox_height);
+            this.strings[i].sounds = this.sounds.slice(sounds_start, sounds_start + 4);
+        }
+    }
+
+    createFrets() {
+
     }
 
     initializeCanvases() {
@@ -144,7 +170,7 @@ class StringInstrument{
         var wavelength = w / 16;
         var frequency = 1 / wavelength;
 
-        // Draw each string line to render canvas with standing wave
+        // Draw each string line to render_canvas with standing wave animation
         this.strings.forEach(string => {
             var amp_mod = amplitude * string.amplitude_modifier;
             this.ctx.beginPath();
@@ -159,27 +185,6 @@ class StringInstrument{
 
         // Redraw
         window.requestAnimationFrame(this.draw);
-    }
-
-    createStrings() {
-        var width =  this.render_canvas.width;
-        var height = this.render_canvas.height;
-
-        var fretboard_division = height / this.num_strings; // Divides fretboard into equal parts for each string
-        var half_division = fretboard_division / 2;
-
-        var string_hitbox_height = 14;
-
-        for(var i = 0; i < this.num_strings; i++) {
-            var sounds_start = i * 5;
-            var midline_y = (i * fretboard_division) + (half_division);
-            var hitbox_y = midline_y - (string_hitbox_height / 2);
-
-            this.strings[i] = new InstrumentString();
-            this.strings[i].line = midline_y;
-            this.strings[i].rect = new Rectangle(0, hitbox_y, width, string_hitbox_height);
-            this.strings[i].sounds = this.sounds.slice(sounds_start, sounds_start + 4);
-        }
     }
 }
 
@@ -209,7 +214,6 @@ class InstrumentString{
             source.connect(ctx.destination);
             source.start();
 
- 
             // Set decreasing vibration amplitude
             this.amplitude_modifier = 1;
             var vibrate = setInterval(() => {
