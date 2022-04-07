@@ -10,8 +10,9 @@ class StringInstrument{
     constructor(strings, frets, sounds, container) {
         this.container = container;
 
-        this.canvas = document.createElement("canvas");
-        this.ctx = this.canvas.getContext("2d");
+        this.background_canvas;
+        this.render_canvas;
+        this.ctx;
 
         this.audio_ctx = new AudioContext();
         this.sound_source = sounds;
@@ -26,17 +27,27 @@ class StringInstrument{
 
     start() {
         this.sounds = this.loadSounds(this.sound_source);
+        this.initializeCanvases();
         this.drawBackground();
     }
 
-    drawBackground() {
-        var background_canvas = document.querySelector("#backgroundCanvas");
-        background_canvas.width = 800;
-        background_canvas.height = 300;
-        var ctx = background_canvas.getContext("2d");
+    initializeCanvases() {
+        this.background_canvas = document.createElement("canvas");
+        this.render_canvas = document.createElement("canvas");
 
-        var width = background_canvas.width;
-        var height = background_canvas.height;
+        this.background_canvas.className = this.render_canvas.className = "render-canvas";
+
+        this.container.appendChild(this.background_canvas);
+        this.container.appendChild(this.render_canvas);
+
+        this.background_canvas.width = this.render_canvas.width = this.container.offsetWidth;
+        this.background_canvas.height = this.render_canvas.height = this.container.offsetHeight;
+    }
+
+    drawBackground() {
+        var ctx = this.background_canvas.getContext("2d");
+        var width = this.background_canvas.width;
+        var height = this.background_canvas.height;
 
         // Draw frets
         ctx.strokeStyle = "black";
@@ -51,6 +62,11 @@ class StringInstrument{
             ctx.stroke();
             ctx.closePath();
         }
+    }
+
+    draw() {
+        // Draw strings
+        var width = this.canvas.width;
     }
 
     loadSounds(directory) {
