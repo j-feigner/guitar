@@ -141,11 +141,12 @@ class StringInstrument{
         // Standing wave parameters
         var tau = Math.PI * 2;
         var amplitude = 0;
-        var wavelength = w / 8;
+        var wavelength = w / 16;
         var frequency = 1 / wavelength;
 
         // Draw each string line to render canvas with standing wave
         this.strings.forEach(string => {
+            string.is_playing ? amplitude = 1 : amplitude = 0;
             this.ctx.beginPath();
             this.ctx.moveTo(0, string.line);
             for(var x = 0; x < w; x++) {
@@ -154,14 +155,6 @@ class StringInstrument{
             }
             this.ctx.stroke();
             this.ctx.closePath();
-        })
-
-        // Draw each string hitbox to render canvas
-        this.strings.forEach(string => {
-            this.ctx.strokeStyle = "red";
-            this.ctx.lineWidth = 2;
-            var r = string.rect;
-            this.ctx.strokeRect(r.x, r.y, r.width, r.height);
         })
 
         // Redraw
@@ -175,7 +168,7 @@ class StringInstrument{
         var fretboard_division = height / this.num_strings; // Divides fretboard into equal parts for each string
         var half_division = fretboard_division / 2;
 
-        var string_hitbox_height = 10;
+        var string_hitbox_height = 14;
 
         for(var i = 0; i < this.num_strings; i++) {
             var sounds_start = i * 5;
@@ -203,6 +196,7 @@ class InstrumentString{
         this.rect; // Rectangle object used for hit detection
         this.sounds;
         this.current_fret;
+        this.is_playing = false;
         this.can_pluck = true;
     }
 
@@ -212,6 +206,11 @@ class InstrumentString{
             source.buffer = this.sounds[0];
             source.connect(ctx.destination);
             source.start();
+
+            this.is_playing = true;
+            setTimeout(() => {
+                this.is_playing = false;
+            }, 500)
 
             this.can_pluck = false;
             setTimeout(() => {
