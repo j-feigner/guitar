@@ -169,7 +169,7 @@ class StringInstrument {
     // Creates SIFingerboard object, mainly used for determining fret selection
     // during mouse events
     createFingerboard() {
-        var fingerboard_width = this.width - (this.width / 5);
+        var fingerboard_width = this.width - (this.width / 4);
         var fret_width = fingerboard_width / this.num_frets;
         var fret_height = this.height / this.num_strings;
 
@@ -186,16 +186,34 @@ class StringInstrument {
     drawBackground() {
         var ctx = this.background_canvas.getContext("2d");
 
+        // Draw fingerboard
+        ctx.fillStyle = "rgb(88, 88, 88)";
+        ctx.beginPath();
+        ctx.rect(0, 0, this.width - (this.width / 4), this.height);
+        ctx.fill();
+        ctx.closePath();
+
+        // Draw bridges
+        ctx.strokeStyle = "saddlebrown";
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(3, 0);
+        ctx.lineTo(3, this.height);
+        ctx.moveTo(this.width - 3, 0);
+        ctx.lineTo(this.width - 3, this.height);
+        ctx.stroke();
+        ctx.closePath();
+
         // Draw fret demarcations to background
-        ctx.strokeStyle = "black";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = "grey";
         for(var i = 0; i < this.fingerboard.rows; i++) {
             ctx.beginPath();
-            this.fingerboard.locations[i].forEach(location => {
-                ctx.moveTo(location.x, location.y);
-                ctx.lineTo(location.x, location.y + location.height);
+            this.fingerboard.locations[i].forEach((location, index) => {
+                ctx.lineWidth = 2;
+                ctx.moveTo(location.x + location.width, location.y);
+                ctx.lineTo(location.x + location.width, location.y + location.height);
+                ctx.stroke();
             })
-            ctx.stroke();
             ctx.closePath();
         }
     }
@@ -231,7 +249,7 @@ class StringInstrument {
 
             // Draw standing sine wave from fret
             var amp_mod = amplitude * string.amplitude_modifier;
-            for(var x = fret_x; x < this.width; x++) {
+            for(var x = fret_x; x <= this.width; x++) {
                 var y = 2 * amp_mod * Math.sin(x * tau / wavelength) * Math.cos(frequency * tau * timestamp);
                 this.ctx.lineTo(x, string.line + (y));
             }
