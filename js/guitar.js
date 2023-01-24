@@ -2,7 +2,7 @@ window.onload = main;
 
 function main() {
     var container = document.querySelector(".guitar-container");
-    var app = new StringInstrument(6, 19, "guitar_6_acoustic", container);
+    var app = new StringInstrument(6, 19, "classical_acoustic", container);
     app.start();
 }
 
@@ -86,16 +86,18 @@ class StringInstrument {
         var half_division = fretboard_division / 2;
 
         var string_hitbox_height = 14;
+        const string_start_sounds = [24, 19, 15, 10, 5, 0];
 
         for(var i = 0; i < this.num_strings; i++) {
-            var sounds_start = i * 5;
+            var sounds_start = string_start_sounds[i];
+
             var midline_y = (i * fretboard_division) + (half_division);
             var hitbox_y = midline_y - (string_hitbox_height / 2);
 
             this.strings[i] = new SIString();
             this.strings[i].line = midline_y;
             this.strings[i].rect = new Rectangle(0, hitbox_y, width, string_hitbox_height);
-            this.strings[i].sounds = this.sounds.slice(sounds_start, sounds_start + 4);
+            this.strings[i].sounds = this.sounds.slice(sounds_start, sounds_start + 20);
         }
     }
 
